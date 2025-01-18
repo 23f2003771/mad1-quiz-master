@@ -102,3 +102,21 @@ form button {
     padding-top: 22px;
     align-items: center;
 }
+
+.bottom_row_for_page {
+    display: flex;
+    justify-content: space-between;
+    gap: 120px;
+
+}
+
+.bottom_row_for_page div:first-child {
+    flex: 1;
+    padding-top: 10px;
+}
+
+.bottom_row_for_page div:last-child {
+    flex: 1;
+    padding-top: 10px;
+    align-items: center;
+}

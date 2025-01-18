@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../static/styles/main.css" />
+</head>
+
+<body>
+    <div class="user_form">
+        <form action="#">
+            <h3 style="color: rgba(226, 38, 38, 0.816)">New Question</h3><br>
+            <div class="input_box">
+                <label for="Chapter_id">Chapter ID</label>
+                <input type="text" id="Chapter_id" placeholder="Enter Chapter ID" required />
+            </div>
+            <div class="input_box">
+                <label for="Q_Title">Question Title</label>
+                <input type="text" id="Q_Title" placeholder="Enter Question Title" required />
+            </div>
+            <div class="input_box">
+                <label for="Q_Statement">Question Statement</label>
+                <input type="text" id="Q_Statement" placeholder="Enter Question Statement" required />
+            </div>
+            <div style="padding-top: 16px; padding-bottom: 16px;" class="user_form">
+                    <h3>Single Option Correct</h3>
+                    <div class="input_box">
+                        <label for="Option_1">Option 1</label>
+                        <input type="text" id="Option_1" placeholder="Enter Option 1" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Option_2">Option 2</label>
+                        <input type="text" id="Option_2" placeholder="Enter Option 2" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Option_3">Option 3</label>
+                        <input type="text" id="Option_3" placeholder="Enter Option 3" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Option_4">Option 4</label>
+                        <input type="text" id="Option_4" placeholder="Enter Option 4" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Correct_option">Correct Option</label>
+                        <input type="text" id="Correct_option" placeholder="Enter Correct Option" required />
+                    </div>
+            </div><br>
+            <div class="bottom_row_for_page">
+                <div><button type="submit">Save</button></div>
+                <div><button type="submit">Cancel</button></div>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
