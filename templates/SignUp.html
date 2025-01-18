@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <link rel="stylesheet" href="../static/styles/Style.css" />
+    <link rel="stylesheet" href="../static/styles/main.css" />
 </head>
 
 <body>
@@ -23,20 +23,26 @@
                 </div>
                 <input type="password" id="password" placeholder="Enter your password" required />
             </div>
-            <div class="input_box">
-                <label for="FullName">Full Name</label>
-                <input type="text" id="FullName" placeholder="Enter your Full Name" required />
-            </div>
-            <div class="input_box">
-                <label for="qualifications">Qualifications</label>
-                <input type="text" id="qualifications" placeholder="Enter your Qualifications" required />
+            <div class="row">
+                <div class="input_box">
+                    <label for="FullName">Full Name</label>
+                    <input type="text" id="FullName" placeholder="Enter your Full Name" required />
+                </div>
+                <div class="input_box">
+                    <label for="qualifications">Qualifications</label>
+                    <input type="text" id="qualifications" placeholder="Enter your Qualifications" required />
+                </div>
             </div>
             <div class="input_box">
                 <label for="dob">Date Of Birth</label>
                 <input type="date" id="dob" placeholder="Enter your Date Of Birth" required />
             </div>
-            <button type="submit">Sign Up</button>
-            <p class="Login">Already have an account? <a href="Login.html">Login</a></p>
+            <div class="bottom_row">
+                <div><button type="submit">Sign Up</button></div>
+                <div>
+                    <p class="Login">Existing User? <a href="Login.html">Login</a></p>
+                </div>
+            </div>
         </form>
     </div>
 </body>

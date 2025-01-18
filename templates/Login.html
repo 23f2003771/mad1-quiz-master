@@ -5,13 +5,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
-    <link rel="stylesheet" href="../static/styles/Style.css" />
+    <link rel="stylesheet" href="../static/styles/main.css" />
 </head>
 
 <body>
     <div class="user_form">
         <form action="#">
-            <h3 style="color: rgba(226, 38, 38, 0.816)">Welcome to Quiz Master</h3>
+            <h3 style="color: hsla(0, 76%, 52%, 0.816)">Welcome to Quiz Master</h3>
             <h3>Login</h3>
             <br />
             <div class="input_box">
@@ -24,8 +24,12 @@
                 </div>
                 <input type="password" id="password" placeholder="Enter your password" required />
             </div>
-            <button type="submit">Log In</button>
-            <p class="sign_up">Don't have an account? <a href="SignUp.html">Sign up</a></p>
+            <div class="bottom_row">
+                <div><button type="submit">Log In</button></div>
+                <div>
+                    <p class="sign_up">New User? <a href="SignUp.html">Sign up</a></p>
+                </div>
+            </div>
         </form>
     </div>
 </body>
