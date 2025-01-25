@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="../static/styles/main.css" />
+</head>
+
+<body>
+    <div class="user_form">
+        <form action="/edit_question/{{ question_edit.id }}" method="POST">
+            <h3 style="color: rgba(226, 38, 38, 0.816)">New Question</h3><br>
+            <div class="input_box">
+                <label for="quiz_id">Quiz ID</label>
+                <input type="text" id="quiz_id" name="quiz_code" placeholder="Enter Quiz ID" value="{{question_edit.quiz_code}}" required />
+            </div>
+            <div class="input_box">
+                <label for="Chapter_id">Chapter ID</label>
+                <input type="text" id="Chapter_id" name="q_chap" placeholder="Enter Chapter ID" value="{{ question_edit.chapter_id }}" required />
+            </div>
+            <div class="input_box">
+                <label for="Q_Title">Question Title</label>
+                <input type="text" id="Q_Title" name="q_text" placeholder="Enter Question Title" value="{{question_edit.question_title}}" required />
+            </div>
+            <div class="input_box">
+                <label for="Q_Statement">Question Statement</label>
+                <input type="text" id="Q_Statement" name="q_statement" placeholder="Enter Question Statement" value="{{question_edit.question_statement}}" required />
+            </div>
+            <div style="padding-top: 16px; padding-bottom: 16px;" class="user_form">
+                    <h3>Single Option Correct</h3>
+                    <div class="input_box">
+                        <label for="Option_1">Option 1</label>
+                        <input type="text" id="Option_1" name="q_opt1" placeholder="Enter Option 1" value="{{question_edit.option1}}" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Option_2">Option 2</label>
+                        <input type="text" id="Option_2" name="q_opt2" placeholder="Enter Option 2" value="{{question_edit.option2}}" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Option_3">Option 3</label>
+                        <input type="text" id="Option_3" name="q_opt3" placeholder="Enter Option 3" value="{{question_edit.option3}}" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Option_4">Option 4</label>
+                        <input type="text" id="Option_4" name="q_opt4" placeholder="Enter Option 4" value="{{question_edit.option4}}" required />
+                    </div>
+                    <div class="input_box">
+                        <label for="Correct_option">Correct Option</label>
+                        <input type="text" id="Correct_option" name="q_ans" placeholder="Enter Correct Option" value="{{question_edit.correct_answer}}" required />
+                    </div>
+            </div><br>
+            <div class="bottom_row_for_page">
+                <div><button type="submit" name = 'action' value = 'save'>Edit</button></div>
+                <div><button type="submit" name = 'action' value = 'cancel'>Cancel</button></div>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>
