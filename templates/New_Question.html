@@ -5,51 +5,50 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
     <link rel="stylesheet" href="../static/styles/main.css" />
 </head>
 
 <body>
     <div class="user_form">
-        <form action="#">
+        <form action="/new_question/{{ quizz_id }}" method="POST">
             <h3 style="color: rgba(226, 38, 38, 0.816)">New Question</h3><br>
             <div class="input_box">
-                <label for="Chapter_id">Chapter ID</label>
-                <input type="text" id="Chapter_id" placeholder="Enter Chapter ID" required />
-            </div>
-            <div class="input_box">
                 <label for="Q_Title">Question Title</label>
-                <input type="text" id="Q_Title" placeholder="Enter Question Title" required />
+                <input type="text" id="Q_Title" name="q_text" placeholder="Enter Question Title" required />
             </div>
             <div class="input_box">
                 <label for="Q_Statement">Question Statement</label>
-                <input type="text" id="Q_Statement" placeholder="Enter Question Statement" required />
+                <input type="text" id="Q_Statement" name="q_statement" placeholder="Enter Question Statement"
+                    required />
             </div>
             <div style="padding-top: 16px; padding-bottom: 16px;" class="user_form">
-                    <h3>Single Option Correct</h3>
-                    <div class="input_box">
-                        <label for="Option_1">Option 1</label>
-                        <input type="text" id="Option_1" placeholder="Enter Option 1" required />
-                    </div>
-                    <div class="input_box">
-                        <label for="Option_2">Option 2</label>
-                        <input type="text" id="Option_2" placeholder="Enter Option 2" required />
-                    </div>
-                    <div class="input_box">
-                        <label for="Option_3">Option 3</label>
-                        <input type="text" id="Option_3" placeholder="Enter Option 3" required />
-                    </div>
-                    <div class="input_box">
-                        <label for="Option_4">Option 4</label>
-                        <input type="text" id="Option_4" placeholder="Enter Option 4" required />
-                    </div>
-                    <div class="input_box">
-                        <label for="Correct_option">Correct Option</label>
-                        <input type="text" id="Correct_option" placeholder="Enter Correct Option" required />
-                    </div>
+                <h3>Single Option Correct</h3>
+                <div class="input_box">
+                    <label for="Option_1">Option 1</label>
+                    <input type="text" id="Option_1" name="q_opt1" placeholder="Enter Option 1" required />
+                </div>
+                <div class="input_box">
+                    <label for="Option_2">Option 2</label>
+                    <input type="text" id="Option_2" name="q_opt2" placeholder="Enter Option 2" required />
+                </div>
+                <div class="input_box">
+                    <label for="Option_3">Option 3</label>
+                    <input type="text" id="Option_3" name="q_opt3" placeholder="Enter Option 3" required />
+                </div>
+                <div class="input_box">
+                    <label for="Option_4">Option 4</label>
+                    <input type="text" id="Option_4" name="q_opt4" placeholder="Enter Option 4" required />
+                </div>
+                <div class="input_box">
+                    <label for="Correct_option">Correct Option</label>
+                    <input type="text" id="Correct_option" name="q_ans" placeholder="Enter Correct Option" required />
+                </div>
             </div><br>
             <div class="bottom_row_for_page">
-                <div><button type="submit">Save</button></div>
-                <div><button type="submit">Cancel</button></div>
+                <div><button class="btn btn-primary" type="submit" name='action' value='save'>Save</button></div>
+                <div><button class="btn btn-danger" type="submit" name='action' value='cancel'>Cancel</button></div>
             </div>
         </form>
     </div>

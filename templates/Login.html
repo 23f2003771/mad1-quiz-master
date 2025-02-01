@@ -10,24 +10,24 @@
 
 <body>
     <div class="user_form">
-        <form action="#">
+        <form action="/" method="POST">
             <h3 style="color: hsla(0, 76%, 52%, 0.816)">Welcome to Quiz Master</h3>
             <h3>Login</h3>
             <br />
             <div class="input_box">
                 <label for="email">Email</label>
-                <input type="email" id="email" placeholder="Enter email address" required />
+                <input type="email" id="email" name="username" placeholder="Enter email address" required />
             </div>
             <div class="input_box">
                 <div class="password_title">
                     <label for="password">Password</label>
                 </div>
-                <input type="password" id="password" placeholder="Enter your password" required />
+                <input type="password" id="password" name="password" placeholder="Enter your password" required />
             </div>
             <div class="bottom_row">
                 <div><button type="submit">Log In</button></div>
                 <div>
-                    <p class="sign_up">New User? <a href="SignUp.html">Sign up</a></p>
+                    <p class="sign_up">New User? <a href="/register">Sign up</a></p>
                 </div>
             </div>
         </form>

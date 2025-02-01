@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <link href="https://fonts.googleapis.com/css2?family=Faculty+Glyphic:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
 
@@ -23,16 +24,16 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-          <a class="nav-link" href="Admin_Dashboard.html">Home <span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="/admin_dashboard">Home <span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="Quiz_Management.html">Quiz</a>
+          <a class="nav-link" href="/quiz_management">Quiz</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="Summary_Charts.html">Summary</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="Login.html">Logout</a>
+          <a class="nav-link" href="/">Logout</a>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
@@ -46,6 +47,9 @@
             <a class="dropdown-item" href="#">Something else here</a>
           </div>
         </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="Admin_Dashboard.html">Admin<span class="sr-only">(current)</span></a>
+        </li>
       </ul>
       <form class="form-inline my-2 my-lg-0">
         <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" />
@@ -57,82 +61,52 @@
   </nav>
   <div style="padding-top: 40px;" class="container">
     <div class="row">
-      <div class="col-sm">
+      {% for subjects in sub_lst %}
+      <div class="col-sm" style="flex: 0 0 calc(50% - 10px); box-sizing: border-box;">
         <div style="padding-top: 16px; padding-bottom: 16px;" class="user_form">
-          <h3><b>App Dev - I</b></h3>
+          <h3 style="font-family: 'Faculty Glyphic';"><b><a href="/view_subjects/{{ subjects.s_code }}">{{ subjects.sub_name }}</a></b></h3>
           <table style="color: rgba(17, 93, 198, 0.816);" class="table table-striped">
             <thead>
               <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Ques Count</th>
-                <th scope="col">Action</th>
-              </tr>
-            </thead>
-          </table>
-          <table style="" class="table table-striped">
-            <tbody>
-              <tr>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-              </tr>
-              <tr>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-              </tr>
-              <tr>
-                <td>Larry</td>
-                <td>the Bird</td>
-                <td>@twitter</td>
-              </tr>
-            </tbody>
-          </table><br>
-          <button type="submit" class="button_for_page">+ Chapter</button>
-
-        </div><br>
-      </div>
-      <div class="col-sm">
-        <div style="padding-top: 16px; padding-bottom: 16px;" class="user_form">
-          <h3><b>System Commands</b></h3>
-          <table style="color: rgba(17, 93, 198, 0.816);" class="table table-striped">
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Ques Count</th>
-                <th scope="col">Action</th>
+                <th scope="col" style="width: 10%; font-family: 'Faculty Glyphic';">ID</th>
+                <th scope="col" style="width: 25%; font-family: 'Faculty Glyphic';">Title</th>
+                <th scope="col" style="width: 20%; font-family: 'Faculty Glyphic';">Ques Count</th>
+                <th scope="col" style="width: 45%; font-family: 'Faculty Glyphic';">Action</th>
               </tr>
             </thead>
           </table>
           <table class="table table-striped">
             <tbody>
+              {% for chapters in chap_lst %}
+              {% if chapters.sbc == subjects.s_code %}
               <tr>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
+                <td style="width: 10%;">{{ chapters.c_id }}</td>
+                <td style="width: 25%;">{{ chapters.chap_name }}</td>
+                <td style="width: 20%;">{{ chapters.ques_count }}</td>
+                <td style="width: 45%;">
+                  <a href="/edit_chapter/{{ chapters.c_id }}" class="btn btn-primary">Edit</a>
+                  <a href="/chapter_delete/{{ chapters.c_id}}" class="btn btn-danger">Delete</a>
+                </td>
               </tr>
-              <tr>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-              </tr>
-              <tr>
-                <td>Larry</td>
-                <td>the Bird</td>
-                <td>@twitter</td>
-              </tr>
+              {% endif %}
+              {% endfor %}
             </tbody>
           </table><br>
-          <button type="submit" class="button_for_page">+ Chapter</button>
+          <form action="/new_chapter/{{ subjects.s_code }}">
+            <button type="submit" class="btn btn-danger">+ Chapter</button>
+          </form>
 
         </div><br>
       </div>
+      {% endfor %}
     </div>
   </div>
   <br />
   <h4 style="color: rgba(232, 47, 47, 0.816); font-size: 18px; padding-left: 4%;"><b>All Subjects Here .....</b></h4>
   <div style="position: fixed; bottom: 10px; right: 40px">
-    <button type="submit" class="button_for_page">+ Add Subject</button>
+    <form action="/new_subject">
+      <button type="submit" class="btn btn-danger">+ Add Subject</button>
+    </form>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"

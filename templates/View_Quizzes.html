@@ -12,23 +12,22 @@
 
 <body>
     <div class="user_form">
-        <form action="/new_quiz" method="POST">
+        <form action="/view_quizzes/{{ quiz_view.id }}" method="POST">
             <h3 style="color: rgba(226, 38, 38, 0.816)">New Quiz</h3><br>
             <div class="input_box">
-                <label for="Chapter_id">Chapter ID</label>
-                <input type="text" id="Chapter_id" placeholder="Enter Chapter ID" name="chapter_id" required />
-            </div>
-            <div class="input_box">
                 <label for="date">Date</label>
-                <input type="date" id="date" placeholder="Enter Exam Date" name="date_quiz" required />
+                <input type="date" id="date" placeholder="Enter Exam Date" name="date_quiz" value="{{quiz_view.date_of_quiz}}"  required />
             </div>
             <div class="input_box">
                 <label for="duration">Duration</label>
-                <input type="time" id="duration" placeholder="Enter Exam Duration" name="quiz_duration" required />
-            </div>
+                <input type="time" id="duration" placeholder="Enter Exam Duration" name="quiz_duration" value="{{quiz_view.time_duration}}" required />
+            </div><br>
             <div class="bottom_row_for_page">
-                <div><button class="btn btn-primary" type="submit" name='action' value='save'>Save</button></div>
-                <div><button class="btn btn-danger" type="submit" name='action' value='cancel'>Cancel</button></div>
+                <div><button class="btn btn-primary" type="submit" name='action' value='edit'>Edit</button></div>
+                <div><button class="btn btn-danger" type="submit" name='action' value='delete'>Delete</button></div>
+            </div>
+            <div style=" padding-left: 25%; padding-right: 25%;">
+                <button  class="btn btn-secondary" type="submit" name='action' value='back'>Go Back</button>
             </div>
         </form>
     </div>
