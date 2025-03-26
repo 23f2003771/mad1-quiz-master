@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,redirect
+from flask import Flask,render_template,request,redirect, session
 from datetime import datetime, time
 from .models import *
 from flask import current_app as app
@@ -9,16 +9,18 @@ import matplotlib.pyplot as plt
 
 app.secret_key = 'secret-key'
 
-@app.route('/',methods = ['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         uname = request.form.get('username')
         pswd = request.form.get('password')
         user = Users_Info.query.filter_by(username=uname, password=pswd).first()
-        if user and user.id == 1:
-            return redirect('/admin_dashboard')
-        elif user and user.id != 1:
-            return redirect('/user_dashboard')
+        if user:
+            session['user_id'] = user.id  # Store user ID in session
+            if user.id == 1:
+                return redirect('/admin_dashboard')
+            else:
+                return redirect('/user_dashboard')
         else:
             return 'User not found'
     return render_template('login.html')
@@ -319,8 +321,12 @@ def user_dashboard():
     # Sort upcoming quizzes by date and time
     upcoming_quiz.sort(key=lambda x: (x['quiz_date'], x['quiz_time']))
     
-    # Get recent quiz scores
-    recent_scores = Scores.query.order_by(Scores.time_stamp_of_attempt.desc()).limit(5).all()
+    # Get recent quiz scores for the logged-in user
+    if 'user_id' not in session:
+        return redirect('/')  # Redirect to login if user is not logged in
+
+    user_id = session['user_id']  # Get the logged-in user's ID
+    recent_scores = Scores.query.filter_by(user_id=user_id).order_by(Scores.time_stamp_of_attempt.desc()).limit(5).all()
     scores_with_details = []
     for score in recent_scores:
         quiz = Quiz.query.filter_by(id=score.quiz_id).first()
@@ -376,8 +382,13 @@ def search():
 
 @app.route('/quiz_history')
 def quiz_history():
+    if 'user_id' not in session:
+        return redirect('/')  # Redirect to login if user is not logged in
+
+    user_id = session['user_id']  # Get the logged-in user's ID
+
     # Get all scores for the current user
-    scores = Scores.query.order_by(Scores.time_stamp_of_attempt.desc()).all()
+    scores = Scores.query.filter_by(user_id=user_id).order_by(Scores.time_stamp_of_attempt.desc()).all()
     scores_with_details = []
     
     for score in scores:
@@ -395,6 +406,7 @@ def quiz_history():
                 })
     
     return render_template('Quiz_History.html', scores=scores_with_details)
+
 
 @app.route('/view_result/<int:score_id>')
 def view_result(score_id):
@@ -430,6 +442,7 @@ def view_result(score_id):
         return render_template('View_Result.html', result=result)
 
     return redirect('/quiz_history')
+
 
 @app.route('/view_quiz/<int:quiz_id>')
 def view_quiz(quiz_id):
@@ -613,12 +626,17 @@ def user_summary():
     
     return render_template('User_Summary.html', chart_image=f'charts/{filename}')
 
+
 @app.route('/take_quiz/<int:quiz_id>', methods=['GET', 'POST'])
 def take_quiz(quiz_id):
     quiz = Quiz.query.get_or_404(quiz_id)
     questions = Questions.query.filter_by(quiz_id=quiz_id).all()
 
     if request.method == 'POST':
+        if 'user_id' not in session:
+            return redirect('/')  # Redirect to login if user is not logged in
+
+        user_id = session['user_id']  # Get the logged-in user's ID
         score = 0
         user_answers = {}
 
@@ -629,7 +647,6 @@ def take_quiz(quiz_id):
                 score += 1
 
         # Save the score and user answers to the database
-        user_id = 1  # Replace with the actual logged-in user ID
         new_score = Scores(
             user_id=user_id,
             quiz_id=quiz_id,
@@ -647,3 +664,9 @@ def take_quiz(quiz_id):
         return redirect('/quiz_history')
 
     return render_template('Take_Quiz.html', quiz=quiz, questions=questions)
+
+
+@app.route('/logout')
+def logout():
+    session.clear()  # Clear all session data
+    return redirect('/')
