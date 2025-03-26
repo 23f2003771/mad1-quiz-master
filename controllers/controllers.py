@@ -398,15 +398,14 @@ def quiz_history():
 
 @app.route('/view_result/<int:score_id>')
 def view_result(score_id):
-    # Get the score record
     score = Scores.query.get_or_404(score_id)
     quiz = Quiz.query.filter_by(id=score.quiz_id).first()
-    
+
     if quiz:
         chapter = Chapter.query.filter_by(chapter_id=quiz.chapter_id).first()
         subject = Subjects.query.filter_by(Subject_code=chapter.subject_code_chapter).first() if chapter else None
         questions = Questions.query.filter_by(quiz_id=quiz.id).all()
-        
+
         # Prepare result data
         result = {
             'subject_name': subject.subject_name if subject else 'Unknown Subject',
@@ -416,23 +415,20 @@ def view_result(score_id):
             'total_questions': len(questions),
             'questions': []
         }
-        
+
         # Add question details
         for question in questions:
             result['questions'].append({
                 'question_title': question.question_title,
                 'question_statement': question.question_statement,
-                'option1': question.option1,
-                'option2': question.option2,
-                'option3': question.option3,
-                'option4': question.option4,
-                'user_answer': 'Not Available',  # You'll need to store and retrieve user answers
+                'options': [question.option1, question.option2, question.option3, question.option4],
+                'user_answer': 'Not Available',  # Replace with actual user answer if stored
                 'correct_answer': question.correct_answer,
-                'is_correct': False  # You'll need to compare user answer with correct answer
+                'is_correct': False  # Replace with actual comparison logic if user answers are stored
             })
-        
+
         return render_template('View_Result.html', result=result)
-    
+
     return redirect('/quiz_history')
 
 @app.route('/view_quiz/<int:quiz_id>')
@@ -616,3 +612,38 @@ def user_summary():
     plt.close()
     
     return render_template('User_Summary.html', chart_image=f'charts/{filename}')
+
+@app.route('/take_quiz/<int:quiz_id>', methods=['GET', 'POST'])
+def take_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    questions = Questions.query.filter_by(quiz_id=quiz_id).all()
+
+    if request.method == 'POST':
+        score = 0
+        user_answers = {}
+
+        for question in questions:
+            user_answer = request.form.get(f'question_{question.id}')
+            user_answers[question.id] = user_answer
+            if user_answer == question.correct_answer:
+                score += 1
+
+        # Save the score and user answers to the database
+        user_id = 1  # Replace with the actual logged-in user ID
+        new_score = Scores(
+            user_id=user_id,
+            quiz_id=quiz_id,
+            time_stamp_of_attempt=datetime.now(),
+            score=score
+        )
+        db.session.add(new_score)
+        db.session.commit()
+
+        # Save user answers (if needed, create a new table for storing answers)
+        for question_id, answer in user_answers.items():
+            # Example: Save answers to a new table if required
+            pass
+
+        return redirect('/quiz_history')
+
+    return render_template('Take_Quiz.html', quiz=quiz, questions=questions)

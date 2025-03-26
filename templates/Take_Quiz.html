@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Take Quiz</title>
+    <link rel="stylesheet" href="../static/styles/main.css">
+    <style>
+        .quiz-container {
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            width: 40%;
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .quiz-header h3 {
+            color: rgba(226, 38, 38, 0.816);
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+
+        .question-container p {
+            margin: 10px 0;
+        }
+
+        .question-container label {
+            display: block;
+            margin: 5px 0;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+
+        .question-container input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .submit-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .submit-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <h3>Quiz: {{ quiz.id }}</h3>
+        </div>
+        <form method="POST">
+            {% for question in questions %}
+            <div class="question-container">
+                <p><b>{{ loop.index }}. {{ question.question_title }}</b></p>
+                <p>{{ question.question_statement }}</p>
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="{{ question.option1 }}" required>
+                    {{ question.option1 }}
+                </label>
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="{{ question.option2 }}">
+                    {{ question.option2 }}
+                </label>
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="{{ question.option3 }}">
+                    {{ question.option3 }}
+                </label>
+                <label>
+                    <input type="radio" name="question_{{ question.id }}" value="{{ question.option4 }}">
+                    {{ question.option4 }}
+                </label>
+            </div>
+            {% endfor %}
+            <button type="submit" class="submit-button">Submit Quiz</button>
+        </form>
+    </div>
+</body>
+
+</html>
