@@ -7,41 +7,59 @@
   <link href="https://fonts.googleapis.com/css2?family=Faculty+Glyphic:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
-  <link rel="stylesheet" href="../static/styles/dashboard.css" />
+  <link rel="stylesheet" href="../static/styles/userside.css" />
   <title>Summary Charts - Quiz Master</title>
+  <style>
+    .nav-pills {
+      background-color: #e3f2fd;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .nav-pills .nav-link {
+      color: #000;
+      margin: 0 5px;
+    }
+    .nav-pills .nav-link.active {
+      background-color: #007bff;
+      color: white;
+    }
+    .welcome-text {
+      color: #007bff;
+      margin-left: 15px;
+    }
+  </style>
 </head>
 
 <body>
-  <nav class="navbar navbar-light navbar-expand-lg" style="background-color: #e3f2fd">
-    <a class="navbar-brand" href="#"><b>Quiz Master</b></a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-      aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="/admin_dashboard">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/quiz_management">Quiz</a>
-        </li>
-        <li class="nav-item active">
-          <a class="nav-link" href="/summary_charts">Summary <span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/">Logout</a>
-        </li>
-      </ul>
-      <form class="form-inline my-2 my-lg-0" action="/search" method="POST">
-        <input class="form-control mr-sm-2" type="search" name="search_query" placeholder="Search" aria-label="Search" />
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
-          Search
-        </button>
-      </form>
+  <div class="container-fluid">
+    <div class="row align-items-center py-2" style="background-color: #e3f2fd;">
+      <div class="col">
+        <ul class="nav nav-pills">
+          <li class="nav-item">
+            <a class="nav-link" href="/user_dashboard">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/quiz_history">Scores</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/user_summary">Summary</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/">Logout</a>
+          </li>
+        </ul>
+      </div>
+      <div class="col-auto">
+        <form class="form-inline" action="/search" method="POST">
+          <input class="form-control mr-2" type="search" name="search_query" placeholder="Search" />
+          <button class="btn btn-outline-primary" type="submit">Search</button>
+        </form>
+      </div>
+      <div class="col-auto">
+        <span class="welcome-text">Welcome User</span>
+      </div>
     </div>
-  </nav>
+  </div>
 
   <div class="container" style="padding-top: 20px;">
     <div class="row">
@@ -69,4 +87,4 @@
     crossorigin="anonymous"></script>
 </body>
 
-</html>
+</html> 

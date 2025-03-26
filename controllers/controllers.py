@@ -2,6 +2,12 @@ from flask import Flask,render_template,request,redirect
 from datetime import datetime, time
 from .models import *
 from flask import current_app as app
+import matplotlib
+matplotlib.use('Agg')
+import os
+import matplotlib.pyplot as plt
+
+app.secret_key = 'secret-key'
 
 @app.route('/',methods = ['GET', 'POST'])
 def login():
@@ -12,7 +18,7 @@ def login():
         if user and user.id == 1:
             return redirect('/admin_dashboard')
         elif user and user.id != 1:
-            return render_template('User_Dashboard.html', usr_name=user.fullname)
+            return redirect('/user_dashboard')
         else:
             return 'User not found'
     return render_template('login.html')
@@ -286,3 +292,327 @@ def view_quizzes(id):
             db.session.commit()
             return redirect('/quiz_management')
     return render_template('View_Quizzes.html', quiz_view=quiz_view)
+
+
+@app.route('/user_dashboard', methods=['GET', 'POST'])
+def user_dashboard():
+    # Get upcoming quizzes
+    upcoming_quiz = []
+    quizzes = Quiz.query.all()
+    
+    for quiz in quizzes:
+        if quiz.date_of_quiz > datetime.now().date() or (
+            quiz.date_of_quiz == datetime.now().date() and 
+            quiz.time_duration > datetime.now().time()
+        ):
+            chapter = Chapter.query.filter_by(chapter_id=quiz.chapter_id).first()
+            if chapter:
+                ques_count = Questions.query.filter_by(quiz_id=quiz.id).count()
+                upcoming_quiz.append({
+                    'quiz_id': quiz.id,
+                    'chap_name': chapter.chapter_name,
+                    'ques_count': ques_count,
+                    'quiz_date': quiz.date_of_quiz,
+                    'quiz_time': quiz.time_duration
+                })
+    
+    # Sort upcoming quizzes by date and time
+    upcoming_quiz.sort(key=lambda x: (x['quiz_date'], x['quiz_time']))
+    
+    # Get recent quiz scores
+    recent_scores = Scores.query.order_by(Scores.time_stamp_of_attempt.desc()).limit(5).all()
+    scores_with_details = []
+    for score in recent_scores:
+        quiz = Quiz.query.filter_by(id=score.quiz_id).first()
+        if quiz:
+            chapter = Chapter.query.filter_by(chapter_id=quiz.chapter_id).first()
+            scores_with_details.append({
+                'id': score.id,
+                'quiz_name': chapter.chapter_name if chapter else 'Unknown Quiz',
+                'time_stamp_of_attempt': score.time_stamp_of_attempt,
+                'score': score.score
+            })
+    
+    return render_template('User_Dashboard.html',
+                         upcoming=upcoming_quiz,
+                         recent_scores=scores_with_details)
+
+
+@app.route('/search', methods=['POST'])
+def search():
+    search_query = request.form.get('search_query', '').strip()
+    
+    # Search in users
+    users = Users_Info.query.filter(
+        (Users_Info.username.ilike(f'%{search_query}%')) |
+        (Users_Info.fullname.ilike(f'%{search_query}%')) |
+        (Users_Info.qualifications.ilike(f'%{search_query}%'))
+    ).all()
+    
+    # Search in subjects
+    subjects = Subjects.query.filter(
+        (Subjects.subject_name.ilike(f'%{search_query}%')) |
+        (Subjects.subject_description.ilike(f'%{search_query}%'))
+    ).all()
+    
+    # Search in chapters
+    chapters = Chapter.query.filter(
+        (Chapter.chapter_name.ilike(f'%{search_query}%')) |
+        (Chapter.chapter_description.ilike(f'%{search_query}%'))
+    ).all()
+    
+    # Search in questions
+    questions = Questions.query.filter(
+        (Questions.question_title.ilike(f'%{search_query}%')) |
+        (Questions.question_statement.ilike(f'%{search_query}%'))
+    ).all()
+    
+    return render_template('Search.html', 
+                         users=users,
+                         subjects=subjects,
+                         chapters=chapters,
+                         questions=questions)
+
+
+@app.route('/quiz_history')
+def quiz_history():
+    # Get all scores for the current user
+    scores = Scores.query.order_by(Scores.time_stamp_of_attempt.desc()).all()
+    scores_with_details = []
+    
+    for score in scores:
+        quiz = Quiz.query.filter_by(id=score.quiz_id).first()
+        if quiz:
+            chapter = Chapter.query.filter_by(chapter_id=quiz.chapter_id).first()
+            if chapter:
+                subject = Subjects.query.filter_by(Subject_code=chapter.subject_code_chapter).first()
+                scores_with_details.append({
+                    'id': score.id,
+                    'subject_name': subject.subject_name if subject else 'Unknown Subject',
+                    'chapter_name': chapter.chapter_name,
+                    'time_stamp_of_attempt': score.time_stamp_of_attempt,
+                    'score': score.score
+                })
+    
+    return render_template('Quiz_History.html', scores=scores_with_details)
+
+@app.route('/view_result/<int:score_id>')
+def view_result(score_id):
+    # Get the score record
+    score = Scores.query.get_or_404(score_id)
+    quiz = Quiz.query.filter_by(id=score.quiz_id).first()
+    
+    if quiz:
+        chapter = Chapter.query.filter_by(chapter_id=quiz.chapter_id).first()
+        subject = Subjects.query.filter_by(Subject_code=chapter.subject_code_chapter).first() if chapter else None
+        questions = Questions.query.filter_by(quiz_id=quiz.id).all()
+        
+        # Prepare result data
+        result = {
+            'subject_name': subject.subject_name if subject else 'Unknown Subject',
+            'chapter_name': chapter.chapter_name if chapter else 'Unknown Chapter',
+            'time_stamp_of_attempt': score.time_stamp_of_attempt,
+            'score': score.score,
+            'total_questions': len(questions),
+            'questions': []
+        }
+        
+        # Add question details
+        for question in questions:
+            result['questions'].append({
+                'question_title': question.question_title,
+                'question_statement': question.question_statement,
+                'option1': question.option1,
+                'option2': question.option2,
+                'option3': question.option3,
+                'option4': question.option4,
+                'user_answer': 'Not Available',  # You'll need to store and retrieve user answers
+                'correct_answer': question.correct_answer,
+                'is_correct': False  # You'll need to compare user answer with correct answer
+            })
+        
+        return render_template('View_Result.html', result=result)
+    
+    return redirect('/quiz_history')
+
+@app.route('/view_quiz/<int:quiz_id>')
+def view_quiz(quiz_id):
+    quiz = Quiz.query.get_or_404(quiz_id)
+    chapter = Chapter.query.filter_by(chapter_id=quiz.chapter_id).first()
+    subject = Subjects.query.filter_by(Subject_code=chapter.subject_code_chapter).first() if chapter else None
+    questions = Questions.query.filter_by(quiz_id=quiz.id).all()
+    
+    quiz_details = {
+        'subject_name': subject.subject_name if subject else 'Unknown Subject',
+        'chapter_name': chapter.chapter_name if chapter else 'Unknown Chapter',
+        'date_of_quiz': quiz.date_of_quiz,
+        'time_duration': quiz.time_duration,
+        'total_questions': len(questions),
+        'questions': []
+    }
+    
+    for question in questions:
+        quiz_details['questions'].append({
+            'question_title': question.question_title,
+            'question_statement': question.question_statement,
+            'option1': question.option1,
+            'option2': question.option2,
+            'option3': question.option3,
+            'option4': question.option4
+        })
+    
+    return render_template('View_Quiz.html', quiz=quiz_details)
+
+
+@app.route('/summary_charts')
+def summary_charts():
+    # Create charts directory if it doesn't exist
+    charts_dir = os.path.join(app.static_folder, 'charts')
+    if not os.path.exists(charts_dir):
+        os.makedirs(charts_dir)
+    
+    # Generate unique filename with timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f'summary_charts_{timestamp}.png'
+    filepath = os.path.join(charts_dir, filename)
+    
+    # Get all subjects
+    subjects = Subjects.query.all()
+    subject_names = [subject.subject_name for subject in subjects]
+    
+    # Count quizzes for each subject
+    quiz_counts = []
+    for subject in subjects:
+        chapters = Chapter.query.filter_by(subject_code_chapter=subject.Subject_code).all()
+        chapter_ids = [chapter.chapter_id for chapter in chapters]
+        quiz_count = Quiz.query.filter(Quiz.chapter_id.in_(chapter_ids)).count()
+        quiz_counts.append(quiz_count)
+    
+    # Get month-wise quiz attempts
+    current_month = datetime.now().month
+    month_attempts = []
+    month_names = []
+    
+    for month in range(current_month - 2, current_month + 1):
+        if month <= 0:
+            actual_month = 12 + month
+            year = datetime.now().year - 1
+        else:
+            actual_month = month
+            year = datetime.now().year
+        
+        month_name = datetime(year, actual_month, 1).strftime('%B')
+        month_names.append(month_name)
+        
+        start_date = datetime(year, actual_month, 1)
+        if actual_month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, actual_month + 1, 1)
+        
+        attempt_count = Scores.query.filter(
+            Scores.time_stamp_of_attempt >= start_date,
+            Scores.time_stamp_of_attempt < end_date
+        ).count()
+        month_attempts.append(attempt_count)
+    
+    # Create figure with two subplots
+    plt.figure(figsize=(15, 6))
+    
+    # Subject-wise quiz counts (Bar Chart)
+    plt.subplot(1, 2, 1)
+    colors = ['lightblue', 'green', 'pink']
+    plt.bar(subject_names, quiz_counts, color=colors[:len(subject_names)])
+    plt.title('Subject wise no.of quizzes', pad=20)
+    plt.ylabel('Number of Quizzes')
+    
+    # Month-wise attempts (Pie Chart)
+    plt.subplot(1, 2, 2)
+    if sum(month_attempts) > 0:
+        patches, texts, autotexts = plt.pie(month_attempts,
+                autopct=lambda pct: f'{int(pct*sum(month_attempts)/100)}',
+                pctdistance=0.75)
+        # Add labels manually with better positioning
+        plt.legend(patches, month_names, title="Months", 
+                  loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+    plt.title('Month wise no.of quizzes attempted', pad=20)
+    
+    # Save the figure
+    plt.savefig(filepath, bbox_inches='tight', dpi=300, facecolor='white')
+    plt.close()
+    
+    return render_template('Summary_Charts.html', chart_image=f'charts/{filename}')
+
+
+@app.route('/user_summary')
+def user_summary():
+    # Create charts directory if it doesn't exist
+    charts_dir = os.path.join(app.static_folder, 'charts')
+    if not os.path.exists(charts_dir):
+        os.makedirs(charts_dir)
+    
+    # Generate unique filename with timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f'user_summary_{timestamp}.png'
+    filepath = os.path.join(charts_dir, filename)
+    
+    # Get all subjects and their quiz counts
+    subjects = Subjects.query.all()
+    subject_names = []
+    quiz_counts = []
+    
+    for subject in subjects:
+        chapters = Chapter.query.filter_by(subject_code_chapter=subject.Subject_code).all()
+        chapter_ids = [chapter.chapter_id for chapter in chapters]
+        quiz_count = Quiz.query.filter(Quiz.chapter_id.in_(chapter_ids)).count()
+        
+        subject_names.append(subject.subject_name)
+        quiz_counts.append(quiz_count if quiz_count is not None else 0)
+    
+    # Get month-wise quiz attempts for the last 3 months
+    current_month = datetime.now().month
+    month_attempts = {}
+    
+    # Calculate the last 3 months
+    for i in range(3):
+        month_num = ((current_month - i - 1) % 12) + 1  # This ensures we wrap around to previous year if needed
+        month_attempts[month_num] = 0
+    
+    # Get all scores and count attempts by month
+    scores = Scores.query.all()
+    for score in scores:
+        month = score.time_stamp_of_attempt.month
+        if month in month_attempts:
+            month_attempts[month] += 1
+    
+    # Convert month numbers to labels (01, 02, 03)
+    month_labels = [f"{m:02d}" for m in sorted(month_attempts.keys())]
+    month_values = [month_attempts[m] for m in sorted(month_attempts.keys())]
+    
+    # Create figure with two subplots
+    plt.figure(figsize=(15, 6))
+    
+    # Subject-wise number of quizzes (Bar Chart)
+    plt.subplot(1, 2, 1)
+    colors = ['skyblue', 'lightgreen', 'lightpink']
+    plt.bar(subject_names, quiz_counts, color=colors[:len(subject_names)])
+    plt.title('Subject-wise No. of Quizzes')
+    plt.ylabel('Number of Quizzes')
+    plt.xticks(rotation=45)
+    
+    # Month-wise quiz attempts (Pie Chart)
+    plt.subplot(1, 2, 2)
+    if sum(month_values) > 0:  # Only create pie chart if there are attempts
+        plt.pie(month_values, labels=month_labels,
+                autopct='%d', pctdistance=0.85)
+    else:
+        # Create an empty pie chart with "No Data" message
+        plt.pie([1], labels=['No Data'],
+               colors=['lightgray'])
+    plt.title('Month-wise No. of Quizzes Attempted')
+    
+    # Save the figure
+    plt.savefig(filepath, bbox_inches='tight', dpi=300)
+    plt.close()
+    
+    return render_template('User_Summary.html', chart_image=f'charts/{filename}')

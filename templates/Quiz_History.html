@@ -7,10 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Faculty+Glyphic:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
-
   <link rel="stylesheet" href="../static/styles/userside.css" />
-
-  <title>User Dashboard - Quiz Master</title>
+  <title>Quiz History - Quiz Master</title>
 </head>
 
 <body>
@@ -23,96 +21,46 @@
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="/user_dashboard">Home</a>
+        </li>
         <li class="nav-item active">
-          <a class="nav-link" href="/user_dashboard">Home <span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="/quiz_history">Scores<span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/quiz_history">Scores</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/user_summary">Summary</a>
-        </li>
+            <a class="nav-link" href="/quiz_history">Summary</a>
+          </li>
         <li class="nav-item">
           <a class="nav-link" href="/">Logout</a>
         </li>
-        <li class="nav-item active">
-          <a class="nav-link">Welcome, {{usr_name}}<span class="sr-only">(current)</span></a>
-        </li>
       </ul>
-      <form class="form-inline my-2 my-lg-0" action="/search" method="POST">
-        <input class="form-control mr-sm-2" type="search" name="search_query" placeholder="Search Subjects/Chapters" aria-label="Search" />
-        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
-          Search
-        </button>
-      </form>
     </div>
   </nav>
 
   <div class="container" style="padding-top: 20px;">
-    <!-- Upcoming Quizzes Section -->
     <div class="row">
       <div class="col-md-12">
         <div class="card">
           <div class="card-header">
-            <h3 style="font-family: 'Faculty Glyphic';"><b>Upcoming Quizzes</b></h3>
+            <h3 style="font-family: 'Faculty Glyphic';"><b>Quiz History</b></h3>
           </div>
           <div class="card-body">
             <div class="table-responsive">
               <table class="table table-striped">
                 <thead>
                   <tr>
-                    <th scope="col" style="font-family: 'Faculty Glyphic';">ID</th>
+                    <th scope="col" style="font-family: 'Faculty Glyphic';">Subject</th>
                     <th scope="col" style="font-family: 'Faculty Glyphic';">Chapter</th>
-                    <th scope="col" style="font-family: 'Faculty Glyphic';">Questions</th>
-                    <th scope="col" style="font-family: 'Faculty Glyphic';">Date</th>
-                    <th scope="col" style="font-family: 'Faculty Glyphic';">Duration</th>
-                    <th scope="col" style="font-family: 'Faculty Glyphic';">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for quiz in upcoming %}
-                  <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ quiz.chap_name }}</td>
-                    <td>{{ quiz.ques_count }}</td>
-                    <td>{{ quiz.quiz_date.strftime('%Y-%m-%d') }}</td>
-                    <td>{{ quiz.quiz_time.strftime('%H:%M') }}</td>
-                    <td>
-                      <a href="/take_quiz/{{ quiz.quiz_id }}" class="btn btn-success btn-sm">Start Quiz</a>
-                      <a href="/view_quiz/{{ quiz.quiz_id }}" class="btn btn-info btn-sm">View</a>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Quiz History Section -->
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <div class="card">
-          <div class="card-header">
-            <h3 style="font-family: 'Faculty Glyphic';"><b>Recent Scores</b></h3>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th scope="col" style="font-family: 'Faculty Glyphic';">Quiz</th>
                     <th scope="col" style="font-family: 'Faculty Glyphic';">Date Attempted</th>
                     <th scope="col" style="font-family: 'Faculty Glyphic';">Score</th>
                     <th scope="col" style="font-family: 'Faculty Glyphic';">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {% for score in recent_scores %}
+                  {% for score in scores %}
                   <tr>
-                    <td>{{ score.quiz_name }}</td>
+                    <td>{{ score.subject_name }}</td>
+                    <td>{{ score.chapter_name }}</td>
                     <td>{{ score.time_stamp_of_attempt.strftime('%Y-%m-%d %H:%M') }}</td>
                     <td>{{ score.score }}</td>
                     <td>
@@ -122,9 +70,6 @@
                   {% endfor %}
                 </tbody>
               </table>
-              <div class="text-right">
-                <a href="/quiz_history" class="btn btn-primary">View All History</a>
-              </div>
             </div>
           </div>
         </div>
@@ -143,4 +88,4 @@
     crossorigin="anonymous"></script>
 </body>
 
-</html>
+</html> 
