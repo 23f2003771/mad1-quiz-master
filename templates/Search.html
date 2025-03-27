@@ -146,6 +146,35 @@
     </div>
     {% endif %}
 
+    {% if quizzes %}
+    <h4 style="font-family: 'Faculty Glyphic';"><b>Quizzes</b></h4>
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Quiz ID</th>
+            <th>Chapter Name</th>
+            <th>Date of Quiz</th>
+            <th>Time Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for quiz in quizzes %}
+          <tr>
+            <td>{{ quiz.id }}</td>
+            <td>
+              {% set chapter = chapters | selectattr('chapter_id', 'equalto', quiz.chapter_id) | first %}
+              {{ chapter.chapter_name if chapter else 'Unknown Chapter' }}
+            </td>
+            <td>{{ quiz.date_of_quiz }}</td>
+            <td>{{ quiz.time_duration }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
     {% if not subjects and not chapters and not questions and not users %}
     <div class="alert alert-info">
       No results found for your search.
@@ -164,4 +193,4 @@
     crossorigin="anonymous"></script>
 </body>
 
-</html> 
+</html>

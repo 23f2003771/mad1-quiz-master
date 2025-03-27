@@ -204,7 +204,7 @@ def edit_question(id):
             q_opt3 = request.form.get('q_opt3')
             q_opt4 = request.form.get('q_opt4')
             q_ans = request.form.get('q_ans')
-            question = Questions.query.filter_by(question_title=q_text).first()
+            question = Questions.query.filter_by(id=id).first()
             question.question_title = q_text
             question.question_statement = q_statement
             question.option1 = q_opt1
@@ -323,7 +323,7 @@ def user_dashboard():
     
     # Get recent quiz scores for the logged-in user
     if 'user_id' not in session:
-        return redirect('/')  # Redirect to login if user is not logged in
+        return redirect('/')
 
     user_id = session['user_id']  # Get the logged-in user's ID
     recent_scores = Scores.query.filter_by(user_id=user_id).order_by(Scores.time_stamp_of_attempt.desc()).limit(5).all()
@@ -347,37 +347,54 @@ def user_dashboard():
 @app.route('/search', methods=['POST'])
 def search():
     search_query = request.form.get('search_query', '').strip()
-    
-    # Search in users
-    users = Users_Info.query.filter(
-        (Users_Info.username.ilike(f'%{search_query}%')) |
-        (Users_Info.fullname.ilike(f'%{search_query}%')) |
-        (Users_Info.qualifications.ilike(f'%{search_query}%'))
+
+    # Check if the logged-in user is an admin
+    if 'user_id' not in session:
+        return redirect('/')  # Redirect to login if user is not logged in
+    user_id = session['user_id']
+    is_admin = user_id == 1
+
+    # Search in quizzes
+    quizzes = Quiz.query.filter(
+        Quiz.id.ilike(f'%{search_query}%') |
+        Quiz.date_of_quiz.ilike(f'%{search_query}%')
     ).all()
-    
+
+    # Search in users (only if the logged-in user is an admin)
+    users = []
+    if is_admin:
+        users = Users_Info.query.filter(
+            (Users_Info.username.ilike(f'%{search_query}%')) |
+            (Users_Info.fullname.ilike(f'%{search_query}%')) |
+            (Users_Info.qualifications.ilike(f'%{search_query}%'))
+        ).all()
+
     # Search in subjects
     subjects = Subjects.query.filter(
         (Subjects.subject_name.ilike(f'%{search_query}%')) |
         (Subjects.subject_description.ilike(f'%{search_query}%'))
     ).all()
-    
+
     # Search in chapters
     chapters = Chapter.query.filter(
         (Chapter.chapter_name.ilike(f'%{search_query}%')) |
         (Chapter.chapter_description.ilike(f'%{search_query}%'))
     ).all()
-    
+
     # Search in questions
     questions = Questions.query.filter(
         (Questions.question_title.ilike(f'%{search_query}%')) |
         (Questions.question_statement.ilike(f'%{search_query}%'))
     ).all()
-    
-    return render_template('Search.html', 
-                         users=users,
-                         subjects=subjects,
-                         chapters=chapters,
-                         questions=questions)
+
+    return render_template(
+        'Search.html',
+        users=users if is_admin else None,  # Pass users only if admin
+        quizzes=quizzes,
+        subjects=subjects,
+        chapters=chapters,
+        questions=questions
+    )
 
 
 @app.route('/quiz_history')
@@ -479,77 +496,64 @@ def summary_charts():
     charts_dir = os.path.join(app.static_folder, 'charts')
     if not os.path.exists(charts_dir):
         os.makedirs(charts_dir)
-    
+
     # Generate unique filename with timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'summary_charts_{timestamp}.png'
     filepath = os.path.join(charts_dir, filename)
-    
-    # Get all subjects
+
+    # Subject-wise top scores
     subjects = Subjects.query.all()
-    subject_names = [subject.subject_name for subject in subjects]
-    
-    # Count quizzes for each subject
-    quiz_counts = []
+    subject_names = []
+    top_scores = []
+
     for subject in subjects:
         chapters = Chapter.query.filter_by(subject_code_chapter=subject.Subject_code).all()
         chapter_ids = [chapter.chapter_id for chapter in chapters]
-        quiz_count = Quiz.query.filter(Quiz.chapter_id.in_(chapter_ids)).count()
-        quiz_counts.append(quiz_count)
-    
-    # Get month-wise quiz attempts
-    current_month = datetime.now().month
-    month_attempts = []
-    month_names = []
-    
-    for month in range(current_month - 2, current_month + 1):
-        if month <= 0:
-            actual_month = 12 + month
-            year = datetime.now().year - 1
-        else:
-            actual_month = month
-            year = datetime.now().year
-        
-        month_name = datetime(year, actual_month, 1).strftime('%B')
-        month_names.append(month_name)
-        
-        start_date = datetime(year, actual_month, 1)
-        if actual_month == 12:
-            end_date = datetime(year + 1, 1, 1)
-        else:
-            end_date = datetime(year, actual_month + 1, 1)
-        
-        attempt_count = Scores.query.filter(
-            Scores.time_stamp_of_attempt >= start_date,
-            Scores.time_stamp_of_attempt < end_date
-        ).count()
-        month_attempts.append(attempt_count)
-    
+        quiz_ids = Quiz.query.filter(Quiz.chapter_id.in_(chapter_ids)).with_entities(Quiz.id).all()
+        quiz_ids = [quiz.id for quiz in quiz_ids]
+        top_score = Scores.query.filter(Scores.quiz_id.in_(quiz_ids)).order_by(Scores.score.desc()).first()
+
+        subject_names.append(subject.subject_name)
+        top_scores.append(top_score.score if top_score else 0)
+
+    # Subject-wise total quiz attempts
+    total_attempts = []
+
+    for subject in subjects:
+        chapters = Chapter.query.filter_by(subject_code_chapter=subject.Subject_code).all()
+        chapter_ids = [chapter.chapter_id for chapter in chapters]
+        quiz_ids = Quiz.query.filter(Quiz.chapter_id.in_(chapter_ids)).with_entities(Quiz.id).all()
+        quiz_ids = [quiz.id for quiz in quiz_ids]
+        attempt_count = Scores.query.filter(Scores.quiz_id.in_(quiz_ids)).count()
+
+        total_attempts.append(attempt_count)
+
     # Create figure with two subplots
     plt.figure(figsize=(15, 6))
-    
-    # Subject-wise quiz counts (Bar Chart)
+
+    # Subject-wise top scores (Bar Chart)
     plt.subplot(1, 2, 1)
-    colors = ['lightblue', 'green', 'pink']
-    plt.bar(subject_names, quiz_counts, color=colors[:len(subject_names)])
-    plt.title('Subject wise no.of quizzes', pad=20)
-    plt.ylabel('Number of Quizzes')
-    
-    # Month-wise attempts (Pie Chart)
+    plt.bar(subject_names, top_scores, color=['skyblue', 'lightgreen', 'lightpink'][:len(subject_names)])
+    plt.title('Subject-wise Top Scores', pad=20)
+    plt.ylabel('Top Scores')
+    plt.xticks(rotation=45)
+
+    # Subject-wise total quiz attempts (Donut Chart)
     plt.subplot(1, 2, 2)
-    if sum(month_attempts) > 0:
-        patches, texts, autotexts = plt.pie(month_attempts,
-                autopct=lambda pct: f'{int(pct*sum(month_attempts)/100)}',
-                pctdistance=0.75)
-        # Add labels manually with better positioning
-        plt.legend(patches, month_names, title="Months", 
-                  loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-    plt.title('Month wise no.of quizzes attempted', pad=20)
-    
+    if sum(total_attempts) > 0:
+        wedges, texts, autotexts = plt.pie(total_attempts, labels=subject_names, autopct='%d', pctdistance=0.85)
+        for wedge in wedges:
+            wedge.set_edgecolor('white')
+        plt.gca().add_artist(plt.Circle((0, 0), 0.5, color='white'))  # Create the donut hole
+    else:
+        plt.pie([1], labels=['No Data'], colors=['lightgray'])
+    plt.title('Subject-wise Total Quiz Attempts')
+
     # Save the figure
-    plt.savefig(filepath, bbox_inches='tight', dpi=300, facecolor='white')
+    plt.savefig(filepath, bbox_inches='tight', dpi=300)
     plt.close()
-    
+
     return render_template('Summary_Charts.html', chart_image=f'charts/{filename}')
 
 
@@ -559,71 +563,102 @@ def user_summary():
     charts_dir = os.path.join(app.static_folder, 'charts')
     if not os.path.exists(charts_dir):
         os.makedirs(charts_dir)
-    
+
     # Generate unique filename with timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'user_summary_{timestamp}.png'
     filepath = os.path.join(charts_dir, filename)
-    
-    # Get all subjects and their quiz counts
+
+    # Get the logged-in user's ID
+    if 'user_id' not in session:
+        return redirect('/')  # Redirect to login if user is not logged in
+    user_id = session['user_id']
+
+    # Subject-wise number of quizzes attempted by the user
     subjects = Subjects.query.all()
     subject_names = []
-    quiz_counts = []
-    
+    quiz_attempts = []
+
     for subject in subjects:
         chapters = Chapter.query.filter_by(subject_code_chapter=subject.Subject_code).all()
         chapter_ids = [chapter.chapter_id for chapter in chapters]
-        quiz_count = Quiz.query.filter(Quiz.chapter_id.in_(chapter_ids)).count()
-        
+        quiz_ids = Quiz.query.filter(Quiz.chapter_id.in_(chapter_ids)).with_entities(Quiz.id).all()
+        quiz_ids = [quiz.id for quiz in quiz_ids]
+        attempt_count = Scores.query.filter(Scores.quiz_id.in_(quiz_ids), Scores.user_id == user_id).count()
+
         subject_names.append(subject.subject_name)
-        quiz_counts.append(quiz_count if quiz_count is not None else 0)
-    
-    # Get month-wise quiz attempts for the last 3 months
+        quiz_attempts.append(attempt_count)
+
+    # Month-wise number of quizzes attempted by the user
     current_month = datetime.now().month
-    month_attempts = {}
-    
-    # Calculate the last 3 months
-    for i in range(3):
-        month_num = ((current_month - i - 1) % 12) + 1  # This ensures we wrap around to previous year if needed
-        month_attempts[month_num] = 0
-    
-    # Get all scores and count attempts by month
-    scores = Scores.query.all()
-    for score in scores:
-        month = score.time_stamp_of_attempt.month
-        if month in month_attempts:
-            month_attempts[month] += 1
-    
-    # Convert month numbers to labels (01, 02, 03)
-    month_labels = [f"{m:02d}" for m in sorted(month_attempts.keys())]
-    month_values = [month_attempts[m] for m in sorted(month_attempts.keys())]
-    
+    month_attempts = []
+    month_names = []
+
+    for month_offset in range(-2, 1):  # Last 3 months
+        actual_month = (current_month + month_offset - 1) % 12 + 1
+        year = datetime.now().year + (month_offset // 12)
+        month_name = datetime(year, actual_month, 1).strftime('%B')
+        month_names.append(month_name)
+
+        start_date = datetime(year, actual_month, 1)
+        end_date = datetime(year, actual_month + 1, 1) if actual_month < 12 else datetime(year + 1, 1)
+        attempt_count = Scores.query.filter(
+            Scores.time_stamp_of_attempt >= start_date,
+            Scores.time_stamp_of_attempt < end_date,
+            Scores.user_id == user_id
+        ).count()
+        month_attempts.append(attempt_count)
+
     # Create figure with two subplots
     plt.figure(figsize=(15, 6))
-    
-    # Subject-wise number of quizzes (Bar Chart)
+
+    # Subject-wise quiz attempts (Bar Chart)
     plt.subplot(1, 2, 1)
-    colors = ['skyblue', 'lightgreen', 'lightpink']
-    plt.bar(subject_names, quiz_counts, color=colors[:len(subject_names)])
-    plt.title('Subject-wise No. of Quizzes')
+    plt.bar(subject_names, quiz_attempts, color=['skyblue', 'lightgreen', 'lightpink'][:len(subject_names)])
+    plt.title('Subject-wise No. of Quizzes Attempted', pad=20)
     plt.ylabel('Number of Quizzes')
     plt.xticks(rotation=45)
-    
+
     # Month-wise quiz attempts (Pie Chart)
     plt.subplot(1, 2, 2)
-    if sum(month_values) > 0:  # Only create pie chart if there are attempts
-        plt.pie(month_values, labels=month_labels,
-                autopct='%d', pctdistance=0.85)
+
+    # Define all 12 months and their colors
+    all_month_names = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December']
+    colors = ['#FF9999', '#66B3FF', '#99FF99', '#FFCC99', '#C2C2F0', '#FFB3E6',
+              '#FF6666', '#B3B3CC', '#FFFF99', '#B3E6B3', '#FF99CC', '#66E6FF']
+
+    # Create a list of attempts for all 12 months
+    all_month_attempts = [0] * 12  # Initialize with 0 for all months
+    for i, month_name in enumerate(month_names):
+        month_index = all_month_names.index(month_name)  # Find the index of the month
+        all_month_attempts[month_index] = month_attempts[i]  # Update with actual data
+
+    # Plot the pie chart
+    if sum(all_month_attempts) > 0:
+        plt.pie(
+            all_month_attempts,
+            colors=colors,
+            startangle=90,
+            autopct='%1.1f%%'  # Display percentages with 1 decimal place
+        )
+        # Adjust the legend to appear smaller and at the bottom-right corner
+        plt.legend(
+            all_month_names,
+            loc="lower right",  # Position the legend at the bottom-right
+            bbox_to_anchor=(1.2, 0),  # Adjust the position further outside the graph
+            title="Months",
+            fontsize="small"  # Make the legend text smaller
+        )
     else:
-        # Create an empty pie chart with "No Data" message
-        plt.pie([1], labels=['No Data'],
-               colors=['lightgray'])
+        plt.pie([1], labels=['No Data'], colors=['lightgray'])
+
     plt.title('Month-wise No. of Quizzes Attempted')
-    
+
     # Save the figure
     plt.savefig(filepath, bbox_inches='tight', dpi=300)
     plt.close()
-    
+
     return render_template('User_Summary.html', chart_image=f'charts/{filename}')
 
 
