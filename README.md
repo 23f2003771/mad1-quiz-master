@@ -1,10 +1,10 @@
 # Quiz Master Project Documentation
 
 ## Author
-**Name** – Shikhar Singh 
-**Roll No.** – 23F2003771 
-**Email** - 23f2003771@ds.study.iitm.ac.in 
-**About Me** - I use data to build meaningful applications and make smart decisions. With a background in Mathematics and Computer Applications, I have a strong passion for coding. I'm skilled in Python, web development, and machine learning. 
+- **Name** – Shikhar Singh 
+- **Roll No.** – 23F2003771 
+- **Email** - 23f2003771@ds.study.iitm.ac.in 
+- **About Me** - I use data to build meaningful applications and make smart decisions. With a background in Mathematics and Computer Applications, I have a strong passion for coding. I'm skilled in Python, web development, and machine learning. 
 
 ## Description
 The Quiz Master project is designed to create an interactive web application for quiz management and participation. It provides a platform for administrators to create and manage quizzes on various subjects, while allowing regular users to take quizzes, track their performance history, and view analytics. The system facilitates knowledge assessment through structured subjects, chapters, and well-organized quizzes.
