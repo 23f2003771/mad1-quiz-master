@@ -22,19 +22,19 @@
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-          <a class="nav-link" href="/admin_dashboard">Home <span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="/user_dashboard">Home <span class="sr-only">(current)</span></a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/quiz_management">Quiz</a>
+          <a class="nav-link" href="/quiz_history">Scores</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/summary_charts">Summary</a>
+          <a class="nav-link" href="/user_summary">Summary</a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="/logout">Logout</a>
         </li>
       </ul>
-      <form class="form-inline my-2 my-lg-0" action="/search" method="POST">
+      <form class="form-inline my-2 my-lg-0" action="/user_search" method="POST">
         <input class="form-control mr-sm-2" type="search" name="search_query" placeholder="Search" aria-label="Search" />
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
           Search
@@ -45,34 +45,6 @@
 
   <div style="padding-top: 40px;" class="container">
     <h3 style="font-family: 'Faculty Glyphic';"><b>Search Results</b></h3>
-    
-    {% if users %}
-    <h4 style="font-family: 'Faculty Glyphic';"><b>Users</b></h4>
-    <div class="table-responsive">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>Username</th>
-            <th>Full Name</th>
-            <th>Qualifications</th>
-            <th>Date of Birth</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
-          {% if user.id != 1 %}
-          <tr>
-            <td>{{ user.username }}</td>
-            <td>{{ user.fullname }}</td>
-            <td>{{ user.qualifications }}</td>
-            <td>{{ user.dob.strftime('%Y-%m-%d') }}</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% endif %}
 
     {% if subjects %}
     <h4 style="font-family: 'Faculty Glyphic';"><b>Subjects</b></h4>
@@ -151,7 +123,7 @@
     </div>
     {% endif %}
 
-    {% if not subjects and not chapters and not quizzes and not users %}
+    {% if not subjects and not chapters and not quizzes %}
     <div class="alert alert-info">
       No results found for your search.
     </div>

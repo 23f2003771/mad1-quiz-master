@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+  <title>User Dashboard</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <link href="https://fonts.googleapis.com/css2?family=Faculty+Glyphic:wght@400;700&display=swap" rel="stylesheet">
@@ -9,8 +10,6 @@
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
 
   <link rel="stylesheet" href="../static/styles/userside.css" />
-
-  <title>User Dashboard - Quiz Master</title>
 </head>
 
 <body>
@@ -39,7 +38,7 @@
           <a class="nav-link">Welcome, {{usr_name}}<span class="sr-only">(current)</span></a>
         </li>
       </ul>
-      <form class="form-inline my-2 my-lg-0" action="/search" method="POST">
+      <form class="form-inline my-2 my-lg-0" action="/user_search" method="POST">
         <input class="form-control mr-sm-2" type="search" name="search_query" placeholder="Search Subjects/Chapters" aria-label="Search" />
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
           Search
@@ -49,7 +48,6 @@
   </nav>
 
   <div class="container" style="padding-top: 20px;">
-    <!-- Upcoming Quizzes Section -->
     <div class="row">
       <div class="col-md-12">
         <div class="card">
@@ -90,8 +88,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Recent Quiz History Section -->
     <div class="row mt-4">
       <div class="col-md-12">
         <div class="card">

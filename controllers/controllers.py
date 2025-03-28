@@ -16,7 +16,7 @@ def login():
         pswd = request.form.get('password')
         user = Users_Info.query.filter_by(username=uname, password=pswd).first()
         if user:
-            session['user_id'] = user.id  # Store user ID in session
+            session['user_id'] = user.id
             if user.id == 1:
                 return redirect('/admin_dashboard')
             else:
@@ -298,7 +298,7 @@ def view_quizzes(id):
 
 @app.route('/user_dashboard', methods=['GET', 'POST'])
 def user_dashboard():
-    # Get upcoming quizzes
+
     upcoming_quiz = []
     quizzes = Quiz.query.all()
     
@@ -318,14 +318,12 @@ def user_dashboard():
                     'quiz_time': quiz.time_duration
                 })
     
-    # Sort upcoming quizzes by date and time
     upcoming_quiz.sort(key=lambda x: (x['quiz_date'], x['quiz_time']))
     
-    # Get recent quiz scores for the logged-in user
     if 'user_id' not in session:
         return redirect('/')
 
-    user_id = session['user_id']  # Get the logged-in user's ID
+    user_id = session['user_id']
     recent_scores = Scores.query.filter_by(user_id=user_id).order_by(Scores.time_stamp_of_attempt.desc()).limit(5).all()
     scores_with_details = []
     for score in recent_scores:
@@ -348,63 +346,76 @@ def user_dashboard():
 def search():
     search_query = request.form.get('search_query', '').strip()
 
-    # Check if the logged-in user is an admin
-    if 'user_id' not in session:
-        return redirect('/')  # Redirect to login if user is not logged in
-    user_id = session['user_id']
-    is_admin = user_id == 1
-
-    # Search in quizzes
     quizzes = Quiz.query.filter(
         Quiz.id.ilike(f'%{search_query}%') |
         Quiz.date_of_quiz.ilike(f'%{search_query}%')
     ).all()
 
-    # Search in users (only if the logged-in user is an admin)
-    users = []
-    if is_admin:
-        users = Users_Info.query.filter(
-            (Users_Info.username.ilike(f'%{search_query}%')) |
-            (Users_Info.fullname.ilike(f'%{search_query}%')) |
-            (Users_Info.qualifications.ilike(f'%{search_query}%'))
-        ).all()
+    chapters_name = Chapter.query.all()
 
-    # Search in subjects
+    users = Users_Info.query.filter(
+        (Users_Info.username.ilike(f'%{search_query}%')) |
+        (Users_Info.fullname.ilike(f'%{search_query}%')) |
+        (Users_Info.qualifications.ilike(f'%{search_query}%'))
+    ).all()
+
     subjects = Subjects.query.filter(
         (Subjects.subject_name.ilike(f'%{search_query}%')) |
         (Subjects.subject_description.ilike(f'%{search_query}%'))
     ).all()
 
-    # Search in chapters
     chapters = Chapter.query.filter(
         (Chapter.chapter_name.ilike(f'%{search_query}%')) |
         (Chapter.chapter_description.ilike(f'%{search_query}%'))
     ).all()
 
-    # Search in questions
-    questions = Questions.query.filter(
-        (Questions.question_title.ilike(f'%{search_query}%')) |
-        (Questions.question_statement.ilike(f'%{search_query}%'))
+    return render_template(
+        'Search.html',
+        users=users,
+        quizzes=quizzes,
+        chapters_name=chapters_name,
+        subjects=subjects,
+        chapters=chapters,
+    )
+
+
+@app.route('/user_search', methods=['POST'])
+def user_search():
+    search_query = request.form.get('search_query', '').strip()
+
+    quizzes = Quiz.query.filter(
+        Quiz.id.ilike(f'%{search_query}%') |
+        Quiz.date_of_quiz.ilike(f'%{search_query}%')
+    ).all()
+
+    chapters_name = Chapter.query.all()
+
+    subjects = Subjects.query.filter(
+        (Subjects.subject_name.ilike(f'%{search_query}%')) |
+        (Subjects.subject_description.ilike(f'%{search_query}%'))
+    ).all()
+
+    chapters = Chapter.query.filter(
+        (Chapter.chapter_name.ilike(f'%{search_query}%')) |
+        (Chapter.chapter_description.ilike(f'%{search_query}%'))
     ).all()
 
     return render_template(
-        'Search.html',
-        users=users if is_admin else None,  # Pass users only if admin
+        'User_Search.html',
+        chapters_name=chapters_name,
         quizzes=quizzes,
         subjects=subjects,
         chapters=chapters,
-        questions=questions
     )
 
 
 @app.route('/quiz_history')
 def quiz_history():
     if 'user_id' not in session:
-        return redirect('/')  # Redirect to login if user is not logged in
+        return redirect('/')
 
-    user_id = session['user_id']  # Get the logged-in user's ID
+    user_id = session['user_id']
 
-    # Get all scores for the current user
     scores = Scores.query.filter_by(user_id=user_id).order_by(Scores.time_stamp_of_attempt.desc()).all()
     scores_with_details = []
     
@@ -435,7 +446,6 @@ def view_result(score_id):
         subject = Subjects.query.filter_by(Subject_code=chapter.subject_code_chapter).first() if chapter else None
         questions = Questions.query.filter_by(quiz_id=quiz.id).all()
 
-        # Prepare result data
         result = {
             'subject_name': subject.subject_name if subject else 'Unknown Subject',
             'chapter_name': chapter.chapter_name if chapter else 'Unknown Chapter',
@@ -445,15 +455,14 @@ def view_result(score_id):
             'questions': []
         }
 
-        # Add question details
         for question in questions:
             result['questions'].append({
                 'question_title': question.question_title,
                 'question_statement': question.question_statement,
                 'options': [question.option1, question.option2, question.option3, question.option4],
-                'user_answer': 'Not Available',  # Replace with actual user answer if stored
+                'user_answer': 'Not Available',
                 'correct_answer': question.correct_answer,
-                'is_correct': False  # Replace with actual comparison logic if user answers are stored
+                'is_correct': False
             })
 
         return render_template('View_Result.html', result=result)
@@ -492,17 +501,14 @@ def view_quiz(quiz_id):
 
 @app.route('/summary_charts')
 def summary_charts():
-    # Create charts directory if it doesn't exist
     charts_dir = os.path.join(app.static_folder, 'charts')
     if not os.path.exists(charts_dir):
         os.makedirs(charts_dir)
 
-    # Generate unique filename with timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'summary_charts_{timestamp}.png'
     filepath = os.path.join(charts_dir, filename)
 
-    # Subject-wise top scores
     subjects = Subjects.query.all()
     subject_names = []
     top_scores = []
@@ -517,7 +523,6 @@ def summary_charts():
         subject_names.append(subject.subject_name)
         top_scores.append(top_score.score if top_score else 0)
 
-    # Subject-wise total quiz attempts
     total_attempts = []
 
     for subject in subjects:
@@ -529,23 +534,20 @@ def summary_charts():
 
         total_attempts.append(attempt_count)
 
-    # Create figure with two subplots
     plt.figure(figsize=(15, 6))
 
-    # Subject-wise top scores (Bar Chart)
     plt.subplot(1, 2, 1)
     plt.bar(subject_names, top_scores, color=['skyblue', 'lightgreen', 'lightpink'][:len(subject_names)])
     plt.title('Subject-wise Top Scores', pad=20)
     plt.ylabel('Top Scores')
     plt.xticks(rotation=45)
 
-    # Subject-wise total quiz attempts (Donut Chart)
     plt.subplot(1, 2, 2)
     if sum(total_attempts) > 0:
         wedges, texts, autotexts = plt.pie(total_attempts, labels=subject_names, autopct='%d', pctdistance=0.85)
         for wedge in wedges:
             wedge.set_edgecolor('white')
-        plt.gca().add_artist(plt.Circle((0, 0), 0.5, color='white'))  # Create the donut hole
+        plt.gca().add_artist(plt.Circle((0, 0), 0.5, color='white'))
     else:
         plt.pie([1], labels=['No Data'], colors=['lightgray'])
     plt.title('Subject-wise Total Quiz Attempts')
@@ -559,22 +561,19 @@ def summary_charts():
 
 @app.route('/user_summary')
 def user_summary():
-    # Create charts directory if it doesn't exist
+
     charts_dir = os.path.join(app.static_folder, 'charts')
     if not os.path.exists(charts_dir):
         os.makedirs(charts_dir)
 
-    # Generate unique filename with timestamp
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f'user_summary_{timestamp}.png'
     filepath = os.path.join(charts_dir, filename)
 
-    # Get the logged-in user's ID
     if 'user_id' not in session:
-        return redirect('/')  # Redirect to login if user is not logged in
+        return redirect('/')
     user_id = session['user_id']
 
-    # Subject-wise number of quizzes attempted by the user
     subjects = Subjects.query.all()
     subject_names = []
     quiz_attempts = []
@@ -589,12 +588,11 @@ def user_summary():
         subject_names.append(subject.subject_name)
         quiz_attempts.append(attempt_count)
 
-    # Month-wise number of quizzes attempted by the user
     current_month = datetime.now().month
     month_attempts = []
     month_names = []
 
-    for month_offset in range(-2, 1):  # Last 3 months
+    for month_offset in range(-2, 1):
         actual_month = (current_month + month_offset - 1) % 12 + 1
         year = datetime.now().year + (month_offset // 12)
         month_name = datetime(year, actual_month, 1).strftime('%B')
@@ -609,53 +607,45 @@ def user_summary():
         ).count()
         month_attempts.append(attempt_count)
 
-    # Create figure with two subplots
     plt.figure(figsize=(15, 6))
 
-    # Subject-wise quiz attempts (Bar Chart)
     plt.subplot(1, 2, 1)
     plt.bar(subject_names, quiz_attempts, color=['skyblue', 'lightgreen', 'lightpink'][:len(subject_names)])
     plt.title('Subject-wise No. of Quizzes Attempted', pad=20)
     plt.ylabel('Number of Quizzes')
     plt.xticks(rotation=45)
 
-    # Month-wise quiz attempts (Pie Chart)
     plt.subplot(1, 2, 2)
 
-    # Define all 12 months and their colors
     all_month_names = ['January', 'February', 'March', 'April', 'May', 'June', 
                        'July', 'August', 'September', 'October', 'November', 'December']
     colors = ['#FF9999', '#66B3FF', '#99FF99', '#FFCC99', '#C2C2F0', '#FFB3E6',
               '#FF6666', '#B3B3CC', '#FFFF99', '#B3E6B3', '#FF99CC', '#66E6FF']
 
-    # Create a list of attempts for all 12 months
-    all_month_attempts = [0] * 12  # Initialize with 0 for all months
+    all_month_attempts = [0] * 12
     for i, month_name in enumerate(month_names):
-        month_index = all_month_names.index(month_name)  # Find the index of the month
-        all_month_attempts[month_index] = month_attempts[i]  # Update with actual data
+        month_index = all_month_names.index(month_name)
+        all_month_attempts[month_index] = month_attempts[i]
 
-    # Plot the pie chart
+
     if sum(all_month_attempts) > 0:
         plt.pie(
             all_month_attempts,
             colors=colors,
             startangle=90,
-            autopct='%1.1f%%'  # Display percentages with 1 decimal place
+            autopct='%1.1f%%'
         )
-        # Adjust the legend to appear smaller and at the bottom-right corner
         plt.legend(
             all_month_names,
-            loc="lower right",  # Position the legend at the bottom-right
-            bbox_to_anchor=(1.2, 0),  # Adjust the position further outside the graph
+            loc="lower right",
+            bbox_to_anchor=(1.2, 0),
             title="Months",
-            fontsize="small"  # Make the legend text smaller
+            fontsize="small"
         )
     else:
         plt.pie([1], labels=['No Data'], colors=['lightgray'])
 
     plt.title('Month-wise No. of Quizzes Attempted')
-
-    # Save the figure
     plt.savefig(filepath, bbox_inches='tight', dpi=300)
     plt.close()
 
@@ -669,9 +659,9 @@ def take_quiz(quiz_id):
 
     if request.method == 'POST':
         if 'user_id' not in session:
-            return redirect('/')  # Redirect to login if user is not logged in
+            return redirect('/')
 
-        user_id = session['user_id']  # Get the logged-in user's ID
+        user_id = session['user_id']
         score = 0
         user_answers = {}
 
@@ -681,7 +671,6 @@ def take_quiz(quiz_id):
             if user_answer == question.correct_answer:
                 score += 1
 
-        # Save the score and user answers to the database
         new_score = Scores(
             user_id=user_id,
             quiz_id=quiz_id,
@@ -691,11 +680,6 @@ def take_quiz(quiz_id):
         db.session.add(new_score)
         db.session.commit()
 
-        # Save user answers (if needed, create a new table for storing answers)
-        for question_id, answer in user_answers.items():
-            # Example: Save answers to a new table if required
-            pass
-
         return redirect('/quiz_history')
 
     return render_template('Take_Quiz.html', quiz=quiz, questions=questions)
@@ -703,5 +687,5 @@ def take_quiz(quiz_id):
 
 @app.route('/logout')
 def logout():
-    session.clear()  # Clear all session data
+    session.clear()
     return redirect('/')
